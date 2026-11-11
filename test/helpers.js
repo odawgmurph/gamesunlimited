@@ -10,6 +10,7 @@ export function makeCtx({ players, settings, assets = {}, seed = 1 }) {
     assets,
     name: (id) => `name-${id}`,
     isConnected: () => true,
+    addPlayer: (id) => (players.includes(id) ? false : (players.push(id), true)),
     emit: (ev, to) => events.push({ ev, to }),
     events,
   };

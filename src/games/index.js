@@ -5,5 +5,6 @@
 import wordbomb from './wordbomb/manifest.js';
 import mafia from './mafia/manifest.js';
 import single from './single/manifest.js';
+import insanity from './insanity/manifest.js';
 
-export const GAMES = [wordbomb, mafia, single];
+export const GAMES = [wordbomb, mafia, single, insanity];

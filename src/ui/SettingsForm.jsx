@@ -3,6 +3,8 @@
  *   { key, label, type: 'number', min, max, step, default, suffix?, help? }
  *   { key, label, type: 'toggle', default, help? }
  *   { key, label, type: 'select', options: [{ value, label }], default, help? }
+ *   { key, label, type: 'custom', component, sanitize(value) -> value, default }
+ *     component receives { value, values, editable, onChange(nextValue) }
  * Optional `when: (values) => boolean` hides a field when irrelevant.
  */
 export function SettingsForm({ schema, values, editable, onChange }) {
@@ -12,6 +14,15 @@ export function SettingsForm({ schema, values, editable, onChange }) {
         .filter((f) => !f.when || f.when(values))
         .map((f) => {
           const v = values[f.key] ?? f.default;
+          if (f.type === 'custom') {
+            // A game-supplied editor (e.g. a deck picker) that lays itself out.
+            const Editor = f.component;
+            return (
+              <div key={f.key} class="setting setting-custom">
+                <Editor value={v} values={values} editable={editable} onChange={(next) => onChange({ [f.key]: next })} />
+              </div>
+            );
+          }
           let input;
           if (f.type === 'toggle') {
             input = <input type="checkbox" name={f.key} checked={!!v} disabled={!editable} onChange={(e) => onChange({ [f.key]: e.currentTarget.checked })} />;

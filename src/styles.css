@@ -255,7 +255,7 @@ input:disabled, select:disabled { opacity: 0.6; }
 .start-bar { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; padding-top: 1.5rem; border-top: 1px solid var(--line); }
 
 /* ---------- In game ---------- */
-.game-stage { display: grid; gap: 1.25rem; }
+.game-stage { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.25rem; }
 .game-bar { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap; }
 .game-title { font-size: 1.4rem; margin: 0; }
 .game-bar-actions { display: flex; gap: 0.5rem; }

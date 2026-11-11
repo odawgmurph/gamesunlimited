@@ -42,7 +42,7 @@ export function getLoadedGame(id) {
 
 export function defaultSettings(manifest) {
   const out = {};
-  for (const s of manifest.settings || []) out[s.key] = s.default;
+  for (const s of manifest.settings || []) out[s.key] = s.type === 'custom' ? structuredClone(s.default) : s.default;
   return out;
 }
 
@@ -59,7 +59,18 @@ export function sanitizeSettings(manifest, input = {}) {
       out[s.key] = !!v;
     } else if (s.type === 'select') {
       if (s.options.some((o) => o.value === v)) out[s.key] = v;
+    } else if (s.type === 'custom') {
+      try {
+        out[s.key] = s.sanitize(v);
+      } catch {
+        // keep the default
+      }
     }
   }
   return out;
+}
+
+/** The fewest players needed with these settings (games may lower it, e.g. when a bot plays). */
+export function minPlayers(manifest, settings) {
+  return manifest.minPlayersFor?.(settings || {}) ?? manifest.minPlayers ?? 1;
 }
