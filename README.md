@@ -10,6 +10,7 @@ the server, and hosting hands itself to someone else automatically if they leave
 |---|---|---|---|
 | 💣 | **Short Fuse** | 1–16 | A word-bomb game. The bomb shows a few letters; type a word containing them before the hidden fuse runs out. Lives, a bonus alphabet that earns extra lives, no repeat words. |
 | 🌙 | **Mafia** | 3–20 | Hidden roles (Villager, Doctor, Detective, Vigilante, Mafioso, Godfather, Jester), night actions, day voting with majority execution, and separate Town / Mafia / Graveyard chats. |
+| 🃏 | **Single** | 2–10 | A color-matching card game. Match the top card's color or number, hit opponents with Skip, Reverse, +2 and Wild +4, and call “Single!” on your last card before someone catches you. One hand or play to 100/250/500 points; optional stacking and draw-until-playable house rules. |
 
 ## Deploy to Vercel
 
