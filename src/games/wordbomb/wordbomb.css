@@ -1,0 +1,61 @@
+.wb { display: grid; gap: 1rem; }
+.wb-arena {
+  position: relative; width: 100%; aspect-ratio: 16 / 10; min-height: 320px;
+  background: radial-gradient(circle at 50% 50%, #2b2050 0%, #171933 65%);
+  border: 1px solid var(--line); border-radius: 22px; overflow: hidden;
+}
+.wb-seat {
+  position: absolute; transform: translate(-50%, -50%); text-align: center; width: 9.5rem;
+  padding: 0.4rem; border-radius: 12px; transition: background 0.2s, transform 0.2s;
+}
+.wb-seat.current { background: rgba(255, 122, 69, 0.15); box-shadow: 0 0 0 2px #ff7a45; transform: translate(-50%, -50%) scale(1.06); }
+.wb-seat.dead { opacity: 0.35; filter: grayscale(1); }
+.wb-seat.flash-good { background: rgba(61, 220, 132, 0.3); }
+.wb-seat.flash-bad { animation: wb-wiggle 0.3s; }
+.wb-seat.flash-boom { background: rgba(255, 93, 115, 0.45); }
+.wb-name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wb-name em { font-style: normal; color: var(--muted); font-weight: 400; font-size: 0.8rem; }
+.wb-hearts { letter-spacing: 0.1em; font-size: 0.95rem; }
+.wb-hearts .on { color: #ff5d73; }
+.wb-hearts .off { color: #3b3f70; }
+.wb-typing { min-height: 1.5rem; font-weight: 700; font-size: 1.05rem; text-transform: uppercase; letter-spacing: 0.04em; word-break: break-all; }
+.wb-typing mark { background: none; color: #ffb547; }
+.wb-placeholder { color: var(--muted); }
+.wb-lastword { color: var(--muted); font-weight: 500; font-size: 0.9rem; text-decoration: line-through; text-decoration-color: transparent; }
+
+.wb-center { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 0; height: 0; }
+.wb-arrow {
+  position: absolute; left: -4px; bottom: 0; width: 8px; height: min(24vw, 190px); transform-origin: 50% 100%;
+  background: linear-gradient(to top, transparent 35%, #ff7a45 100%); border-radius: 4px; transition: transform 0.3s cubic-bezier(.3,1.4,.5,1);
+}
+.wb-bomb {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: clamp(90px, 16vw, 130px); aspect-ratio: 1; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #4a4e7a, #15162b 70%); border: 3px solid #0b0b18;
+  display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+}
+.wb-bomb.lit { animation: wb-pulse 1.1s ease-in-out infinite; }
+.wb-fuse { position: absolute; top: -14px; left: 58%; width: 10px; height: 18px; background: #c9a36b; border-radius: 3px; transform: rotate(25deg); }
+.wb-bomb.lit .wb-fuse::after { content: ''; position: absolute; top: -8px; left: -3px; width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(#fff6a0, #ff7a45 60%, transparent 70%); animation: wb-spark 0.15s infinite alternate; }
+.wb-prompt { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 900; letter-spacing: 0.05em; color: #fff; text-shadow: 0 2px 0 #000; }
+.wb-input { display: flex; gap: 0.5rem; }
+.wb-input input { flex: 1; width: 0; min-width: 0; font-size: 1.3rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; padding: 0.75rem 1rem; }
+.wb-input.shake { animation: wb-wiggle 0.35s; }
+.wb-input.shake input { border-color: var(--danger); }
+.wb-alphabet { display: flex; flex-wrap: wrap; gap: 0.25rem; justify-content: center; }
+.wb-alphabet span { width: 1.8rem; height: 1.8rem; display: grid; place-items: center; border-radius: 6px; background: var(--bg2); border: 1px solid var(--line); color: var(--muted); font-weight: 700; font-size: 0.85rem; }
+.wb-alphabet span.got { background: var(--accent2); color: #062a22; border-color: transparent; }
+.wb-over { text-align: center; }
+.wb-stats { margin: 0.5rem auto; border-collapse: collapse; min-width: 60%; }
+.wb-stats th, .wb-stats td { padding: 0.35rem 0.75rem; border-bottom: 1px solid var(--line); text-align: left; }
+.wb-shake-a .wb-arena { animation: wb-quake 0.5s; }
+.wb-shake-b .wb-arena { animation: wb-quake2 0.5s; }
+@keyframes wb-pulse { 50% { transform: translate(-50%, -50%) scale(1.06); } }
+@keyframes wb-spark { to { transform: scale(1.3); opacity: 0.7; } }
+@keyframes wb-wiggle { 25% { transform: translateX(-6px); } 50% { transform: translateX(6px); } 75% { transform: translateX(-3px); } }
+@keyframes wb-quake { 20% { transform: translate(-8px, 4px); } 40% { transform: translate(8px, -4px); } 60% { transform: translate(-5px, 2px); } 80% { transform: translate(4px, -2px); } }
+@keyframes wb-quake2 { 20% { transform: translate(8px, -4px); } 40% { transform: translate(-8px, 4px); } 60% { transform: translate(5px, -2px); } 80% { transform: translate(-4px, 2px); } }
+@media (max-width: 600px) {
+  .wb-arena { aspect-ratio: 1; }
+  .wb-seat { width: 6.5rem; font-size: 0.85rem; }
+}
