@@ -9,60 +9,68 @@ export function Lobby({ room, info, isHost }) {
 
   return (
     <div class="lobby">
-      <div class="card">
-        <div class="card-head">
-          <h2>Choose a game</h2>
-          {!isHost && <span class="muted">The host picks the game</span>}
+      <section>
+        <div class="section-head">
+          <h1>Choose a game</h1>
+          {!isHost && <span class="muted small">The host picks the game</span>}
         </div>
         <div class="game-cards">
-          {listGames().map((g) => (
-            <button
-              key={g.id}
-              class={`game-card ${g.id === manifest.id ? 'selected' : ''}`}
-              style={{ '--accent': g.color }}
-              disabled={!isHost}
-              onClick={() => room.command('selectGame', { gameId: g.id })}
-            >
-              <div class="game-icon">{g.icon}</div>
-              <div>
-                <h3>{g.name}</h3>
-                <p>{g.tagline}</p>
-                <small>
+          {listGames().map((g) => {
+            const selected = g.id === manifest.id;
+            return (
+              <button key={g.id} class={`game-card ${selected ? 'selected' : ''}`} aria-pressed={selected} disabled={!isHost} onClick={() => room.command('selectGame', { gameId: g.id })}>
+                <span class="game-card-top">
+                  <strong>{g.name}</strong>
+                  {selected && (
+                    <span class="check" aria-hidden="true">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M5 12l5 5 9-10" />
+                      </svg>
+                    </span>
+                  )}
+                </span>
+                <span class="game-card-text">{g.tagline}</span>
+                <span class="game-card-meta">
                   {g.minPlayers}–{g.maxPlayers} players
-                </small>
-              </div>
-            </button>
-          ))}
+                </span>
+              </button>
+            );
+          })}
         </div>
-      </div>
+      </section>
 
       <div class="lobby-grid">
-        <div class="card">
-          <h3>How to play {manifest.name}</h3>
-          <ul class="rules">
+        <section>
+          <h2 class="eyebrow">How to play</h2>
+          <ol class="rules">
             {(manifest.rules || []).map((r, i) => (
-              <li key={i}>{r}</li>
+              <li key={i}>
+                <span class="rule-n">{String(i + 1).padStart(2, '0')}</span>
+                <span>{r}</span>
+              </li>
             ))}
-          </ul>
-        </div>
-        <div class="card">
-          <h3>Settings</h3>
+          </ol>
+        </section>
+        <section class="panel settings-panel">
+          <h2 class="eyebrow">Settings</h2>
           <SettingsForm
             schema={manifest.settings || []}
             values={settings}
             editable={isHost}
             onChange={(patch) => room.command('setSettings', { settings: patch })}
           />
-        </div>
+        </section>
       </div>
 
       <div class="start-bar">
         {isHost ? (
           <>
-            <button class="btn btn-primary btn-lg" disabled={!enough} onClick={() => room.command('start')}>
+            <button class="btn btn-primary btn-tall" disabled={!enough} onClick={() => room.command('start')}>
               Start {manifest.name}
             </button>
-            {!enough && <span class="muted">Needs at least {manifest.minPlayers} players ({count} here).</span>}
+            <span class="muted">
+              {enough ? `${count} ${count === 1 ? 'player' : 'players'} in the room` : `Needs at least ${manifest.minPlayers} players (${count} here)`}
+            </span>
           </>
         ) : (
           <span class="muted">Waiting for the host to start…</span>

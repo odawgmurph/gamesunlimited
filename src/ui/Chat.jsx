@@ -16,7 +16,7 @@ export function Chat({ room, info }) {
   };
 
   return (
-    <div class="card chat">
+    <div class="panel chat">
       <h3>Chat</h3>
       <div class="chat-log" ref={list}>
         {info.chat.map((c) =>
@@ -26,14 +26,14 @@ export function Chat({ room, info }) {
             </div>
           ) : (
             <div key={c.id} class="chat-msg">
-              <b>{c.name}:</b> {c.text}
+              <b>{c.name}</b> {c.text}
             </div>
           )
         )}
       </div>
       <form class="chat-form" onSubmit={send}>
-        <input name="chat" value={text} maxLength={300} placeholder="Say something…" onInput={(e) => setText(e.currentTarget.value)} />
-        <button class="btn btn-sm">Send</button>
+        <input name="chat" value={text} maxLength={300} aria-label="Message" placeholder="Say something" onInput={(e) => setText(e.currentTarget.value)} />
+        <button class="btn btn-outline">Send</button>
       </form>
     </div>
   );

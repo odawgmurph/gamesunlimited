@@ -34,10 +34,10 @@ export function GameStage({ room, info, view, isHost }) {
   );
   api.names = names;
 
-  if (err) return <div class="card">Couldn't load the game: {err}</div>;
+  if (err) return <div class="panel">Couldn't load the game: {err}</div>;
   if (!game || !view) {
     return (
-      <div class="card center">
+      <div class="panel center">
         <div class="spinner" />
         <p>Loading {game?.manifest.name || 'game'}…</p>
       </div>
@@ -47,9 +47,7 @@ export function GameStage({ room, info, view, isHost }) {
   return (
     <div class="game-stage">
       <div class="game-bar">
-        <span class="game-title">
-          {manifest.icon} {manifest.name}
-        </span>
+        <h1 class="game-title">{manifest.name}</h1>
         {isHost && (
           <span class="game-bar-actions">
             {info.game.over ? (
@@ -68,7 +66,7 @@ export function GameStage({ room, info, view, isHost }) {
                 </button>
               </>
             ) : (
-              <button class="btn btn-ghost btn-sm" onClick={() => confirm('End the game for everyone?') && room.command('endGame')}>
+              <button class="btn btn-sm" onClick={() => confirm('End the game for everyone?') && room.command('endGame')}>
                 End game
               </button>
             )}

@@ -25,10 +25,9 @@ function RoleCard({ role, big, bullets }) {
   if (!r) return null;
   return (
     <div class={`mf-role team-${r.team} ${big ? 'big' : ''}`}>
-      <div class="mf-role-icon">{r.icon}</div>
       <div>
         <div class="mf-role-name">
-          You are {/^[AEIOU]/.test(r.name) ? 'an' : 'a'} <b>{r.name}</b> <span class="tag">{TEAM_LABEL[r.team]}</span>
+          You are {/^[AEIOU]/.test(r.name) ? 'an' : 'a'} <b>{r.name}</b> <span class={`tag tag-${r.team}`}>{TEAM_LABEL[r.team]}</span>
         </div>
         <div class="mf-role-blurb">{r.blurb}</div>
         {role === 'vigilante' && <div class="mf-role-blurb">Bullets left: {bullets}</div>}
@@ -85,7 +84,7 @@ function Chat({ view, api }) {
             </div>
           ) : (
             <div key={m.id} class={`mf-msg ch-${m.ch}`}>
-              <b>{api.name(m.from)}:</b> {m.text}
+              <b>{api.name(m.from)}</b> {m.text}
             </div>
           )
         )}
@@ -99,7 +98,7 @@ function Chat({ view, api }) {
           placeholder={canWrite ? `Message ${CH_LABEL[canWrite]}…` : view.phase === 'night' ? 'Shh… it’s night.' : 'You can’t talk here right now.'}
           onInput={(e) => setText(e.currentTarget.value)}
         />
-        <button class="btn btn-sm" disabled={!canWrite}>
+        <button class="btn btn-outline" disabled={!canWrite}>
           Send
         </button>
       </form>
@@ -136,7 +135,7 @@ export function View({ view, api }) {
       <div class="mf-banner">
         <div>
           <div class="mf-phase">
-            {view.phase === 'day' ? `☀️ Day ${view.day}` : view.phase === 'night' ? '🌙 Night' : PHASE_LABEL[view.phase]}
+            {view.phase === 'day' ? `Day ${view.day}` : PHASE_LABEL[view.phase]}
           </div>
           <div class="muted">
             {alive.length} alive
@@ -148,8 +147,8 @@ export function View({ view, api }) {
 
       {view.over && (
         <div class={`card mf-result team-${view.winner}`}>
-          <h2>{view.winner === 'town' ? '🎉 Town wins!' : '🔪 Mafia wins!'}</h2>
-          {view.jesterWinners.length > 0 && <p>🃏 Jester win: {view.jesterWinners.map(api.name).join(', ')}</p>}
+          <h2>{view.winner === 'town' ? 'Town wins' : 'Mafia wins'}</h2>
+          {view.jesterWinners.length > 0 && <p>Jester win: {view.jesterWinners.map(api.name).join(', ')}</p>}
         </div>
       )}
 
@@ -157,8 +156,8 @@ export function View({ view, api }) {
       {me && view.phase !== 'intro' && !view.over && (
         <details class="mf-role-wrap" open={!me.alive ? false : undefined}>
           <summary>
-            {me.alive ? 'Your role: ' : '💀 You died. You can watch and talk in the Graveyard. You were: '}
-            {ROLES[me.role].icon} {ROLES[me.role].name}
+            {me.alive ? 'Your role: ' : 'You died. You can watch and talk in the Graveyard. You were: '}
+            {ROLES[me.role].name}
           </summary>
           <RoleCard role={me.role} bullets={me.bullets} />
         </details>
@@ -187,20 +186,20 @@ export function View({ view, api }) {
               return (
                 <li key={p.id} class={`${p.alive ? '' : 'dead'} ${p.id === me?.id ? 'me' : ''}`}>
                   <span class="mf-pname">
-                    {p.alive ? '' : '💀 '}
                     {p.name}
                     {p.id === me?.id && <em> (you)</em>}
                     {!p.connected && p.alive && <em> (offline)</em>}
+                    {!p.alive && <em> (dead)</em>}
                   </span>
                   {r && (
                     <span class={`mf-prole team-${r.team}`} title={r.name}>
-                      {r.icon} {r.name}
+                      {r.name}
                     </span>
                   )}
-                  {teamPicks?.length > 0 && <span class="mf-picks">🔪 {teamPicks.join(', ')}</span>}
+                  {teamPicks?.length > 0 && <span class="mf-picks">Picked by {teamPicks.join(', ')}</span>}
                   {view.phase === 'day' && tally[p.id] > 0 && <span class="mf-votes">{tally[p.id]}</span>}
                   {canVote && p.alive && (
-                    <button class={`btn btn-sm ${myVote === p.id ? 'btn-danger' : ''}`} onClick={() => api.act({ type: 'vote', target: myVote === p.id ? null : p.id })}>
+                    <button class={`btn btn-sm ${myVote === p.id ? 'btn-primary' : 'btn-outline'}`} onClick={() => api.act({ type: 'vote', target: myVote === p.id ? null : p.id })}>
                       {myVote === p.id ? 'Voted' : 'Vote'}
                     </button>
                   )}
