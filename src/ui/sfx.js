@@ -71,5 +71,8 @@ export const sfx = {
   life: () => [523, 659, 784, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.12, 'triangle'), i * 80)),
   turn: () => tone(880, 0.06, 'sine', 0.08),
   bell: () => tone(1320, 0.4, 'sine', 0.12),
+  card: () => tone(520, 0.07, 'triangle', 0.12, 260),
+  draw: () => tone(340, 0.08, 'sine', 0.1, -120),
+  alert: () => [988, 1318].forEach((f, i) => setTimeout(() => tone(f, 0.1, 'square', 0.06), i * 90)),
   win: () => [523, 659, 784, 659, 1046].forEach((f, i) => setTimeout(() => tone(f, 0.16, 'triangle'), i * 120)),
 };
