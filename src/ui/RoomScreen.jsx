@@ -7,6 +7,7 @@ import { Chat } from './Chat.jsx';
 import { Lobby } from './Lobby.jsx';
 import { GameStage } from './GameStage.jsx';
 import { getManifest } from '../core/registry.js';
+import { ThemeToggle } from './ThemeToggle.jsx';
 
 function useRoom(session, onCode) {
   const room = useMemo(
@@ -43,7 +44,7 @@ export function RoomScreen({ session, onCode, onExit }) {
   if (status === 'error' || status === 'kicked' || status === 'closed') {
     return (
       <main class="center-screen">
-        <div class="card narrow">
+        <div class="panel narrow">
           <h2>{status === 'kicked' ? 'Removed' : 'Disconnected'}</h2>
           <p>{error || 'You left the room.'}</p>
           <button class="btn btn-primary" onClick={onExit}>
@@ -57,7 +58,7 @@ export function RoomScreen({ session, onCode, onExit }) {
   if (!info) {
     return (
       <main class="center-screen">
-        <div class="card narrow">
+        <div class="panel narrow">
           <div class="spinner" />
           <p>{session.create ? 'Creating room…' : `Joining ${session.code}…`}</p>
           <button class="btn btn-ghost" onClick={onExit}>
@@ -76,27 +77,38 @@ export function RoomScreen({ session, onCode, onExit }) {
   return (
     <div class="room">
       <header class="topbar">
-        <button class="btn btn-ghost btn-sm" onClick={onExit} title="Leave room">
-          ← Leave
-        </button>
-        <div class="room-code">
-          Room
-          <button
-            class="code-chip"
-            title="Copy invite link"
-            onClick={() => {
-              navigator.clipboard?.writeText(link).then(
-                () => toast('Invite link copied!'),
-                () => toast(link)
-              );
-            }}
-          >
-            {info.code}
+        <div class="topbar-inner">
+          <button class="btn btn-ghost btn-sm leave" onClick={onExit}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+            Leave
           </button>
-        </div>
-        <div class="topbar-right">
-          {status === 'migrating' && <span class="pill pill-warn">Switching host…</span>}
-          {isHost && <span class="pill">You're hosting</span>}
+          <span class="topbar-sep" />
+          <div class="room-code">
+            <span class="muted">Room</span>
+            <span class="code">{info.code}</span>
+            <button
+              class="btn btn-sm"
+              onClick={() => {
+                navigator.clipboard?.writeText(link).then(
+                  () => toast('Invite link copied'),
+                  () => toast(link)
+                );
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <rect x="9" y="9" width="11" height="11" rx="2" />
+                <path d="M5 15V5a1 1 0 0 1 1-1h9" />
+              </svg>
+              Copy invite link
+            </button>
+          </div>
+          <div class="topbar-right">
+            {status === 'migrating' && <span class="pill pill-warn">Switching host…</span>}
+            {isHost && <span class="muted small">You're hosting</span>}
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -107,7 +119,7 @@ export function RoomScreen({ session, onCode, onExit }) {
         <aside class="sidebar">
           <Members room={room} info={info} isHost={isHost} />
           {chatHidden ? (
-            <div class="card chat-off">Room chat is off while {manifest.name} is running — use the in-game chat.</div>
+            <div class="panel chat-off">Room chat is off while {manifest.name} is running — use the in-game chat.</div>
           ) : (
             <Chat room={room} info={info} />
           )}

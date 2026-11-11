@@ -18,9 +18,11 @@ export function Members({ room, info, isHost }) {
   };
 
   return (
-    <div class="card members">
+    <div class="panel members">
       <div class="card-head">
-        <h3>Players · {order.length}</h3>
+        <h3>
+          Players <span class="muted">{order.length}</span>
+        </h3>
         {!editing && (
           <button class="btn btn-ghost btn-sm" onClick={() => setEditing(true)}>
             Rename
@@ -36,15 +38,15 @@ export function Members({ room, info, isHost }) {
       <ol class="member-list">
         {order.map((m, i) => (
           <li key={m.id} class={m.id === room.me ? 'is-me' : ''}>
-            <span class="member-rank" title={i === 0 ? 'Host' : `#${i} in line to host`}>
-              {m.id === info.hostId ? '👑' : m.promoted != null ? '⭐' : i}
+            <span class="avatar" title={i === 0 ? 'Host' : `#${i} in line to host`}>
+              {(m.name || '?').slice(0, 1).toUpperCase()}
             </span>
             <span class="member-name">
               {m.name}
               {m.id === room.me && <em> (you)</em>}
             </span>
-            {m.id === info.hostId && <span class="tag">host</span>}
-            {m.promoted != null && m.id !== info.hostId && <span class="tag tag-co">co-host</span>}
+            {m.id === info.hostId && <span class="tag">Host</span>}
+            {m.promoted != null && m.id !== info.hostId && <span class="tag">Co-host</span>}
             {isHost && m.id !== room.me && (
               <button class="btn btn-ghost btn-sm kebab" aria-label={`Manage ${m.name}`} onClick={() => setMenu(menu === m.id ? null : m.id)}>
                 ⋯
@@ -67,7 +69,7 @@ export function Members({ room, info, isHost }) {
         ))}
         {offline.map((m) => (
           <li key={m.id} class="offline">
-            <span class="member-rank">·</span>
+            <span class="avatar">{(m.name || '?').slice(0, 1).toUpperCase()}</span>
             <span class="member-name">{m.name}</span>
             <span class="tag">reconnecting…</span>
           </li>

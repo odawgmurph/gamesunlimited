@@ -19,9 +19,7 @@ function Hearts({ n, max }) {
   return (
     <span class="wb-hearts" aria-label={`${n} lives`}>
       {Array.from({ length: Math.max(n, max) }, (_, i) => (
-        <span key={i} class={i < n ? 'on' : 'off'}>
-          ♥
-        </span>
+        <span key={i} class={i < n ? 'on' : 'off'} />
       ))}
     </span>
   );
@@ -126,6 +124,7 @@ export function View({ view, api }) {
           {!view.over && turnIdx >= 0 && n > 1 && <div class="wb-arrow" style={{ transform: `rotate(${angleOf(turnIdx) + 90}deg)` }} />}
           <div class={`wb-bomb ${starting ? '' : 'lit'}`} key={boom}>
             <div class="wb-fuse" />
+            <div class="wb-spark" />
             <div class="wb-prompt">{starting ? Math.ceil((view.startsAt - now) / 1000) : view.prompt?.toUpperCase()}</div>
           </div>
         </div>
@@ -133,7 +132,7 @@ export function View({ view, api }) {
 
       {view.over ? (
         <div class="card wb-over">
-          <h2>{view.winner ? `${view.players.find((p) => p.id === view.winner)?.name} wins!` : 'Game over'}</h2>
+          <h2>{view.winner ? `${view.players.find((p) => p.id === view.winner)?.name} wins` : 'Game over'}</h2>
           <table class="wb-stats">
             <thead>
               <tr>
@@ -159,6 +158,7 @@ export function View({ view, api }) {
       ) : (
         <form class={`wb-input ${shake ? 'shake' : ''}`} onSubmit={onSubmit}>
           <input
+            aria-label="Your word"
             ref={input}
             name="word"
             value={text}
