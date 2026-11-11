@@ -1,11 +1,12 @@
-import { listGames, getManifest } from '../core/registry.js';
+import { listGames, getManifest, minPlayers } from '../core/registry.js';
 import { SettingsForm } from './SettingsForm.jsx';
 
 export function Lobby({ room, info, isHost }) {
   const manifest = getManifest(info.lobby.gameId);
   const settings = info.lobby.settings[manifest.id] || {};
   const count = info.members.filter((m) => m.connected !== false).length;
-  const enough = count >= manifest.minPlayers;
+  const min = minPlayers(manifest, settings);
+  const enough = count >= min;
 
   return (
     <div class="lobby">
@@ -69,7 +70,7 @@ export function Lobby({ room, info, isHost }) {
               Start {manifest.name}
             </button>
             <span class="muted">
-              {enough ? `${count} ${count === 1 ? 'player' : 'players'} in the room` : `Needs at least ${manifest.minPlayers} players (${count} here)`}
+              {enough ? `${count} ${count === 1 ? 'player' : 'players'} in the room` : `Needs at least ${min} players (${count} here)`}
             </span>
           </>
         ) : (

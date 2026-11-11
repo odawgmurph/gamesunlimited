@@ -11,6 +11,7 @@ the server, and hosting hands itself to someone else automatically if they leave
 | 💣 | **Short Fuse** | 1–16 | A word-bomb game. The bomb shows a few letters; type a word containing them before the hidden fuse runs out. Lives, a bonus alphabet that earns extra lives, no repeat words. |
 | 🌙 | **Mafia** | 3–20 | Hidden roles (Villager, Doctor, Detective, Vigilante, Mafioso, Godfather, Jester), night actions, day voting with majority execution, and separate Town / Mafia / Graveyard chats. |
 | 🃏 | **Single** | 2–10 | A color-matching card game. Match the top card's color or number, hit opponents with Skip, Reverse, +2 and Wild +4, and call “Single!” on your last card before someone catches you. One hand or play to 100/250/500 points; optional stacking and draw-until-playable house rules. |
+| 🂠 | **Cards with Insanity** | 3–20 | A fill-in-the-blank party card game in the style of Pretend You're Xyzzy. A rotating Card Czar picks the funniest anonymous answer. Ships with all 42 official sets from PYX (2,000+ white cards, 540 black) and imports any [CrCast](https://crcast.cc) deck by its 5-character code. Blank write-in cards, Rando Cardrissian, Rebooting the Universe, and people can join mid-game. |
 
 ## Deploy to Vercel
 
@@ -19,7 +20,15 @@ the server, and hosting hands itself to someone else automatically if they leave
 3. Deploy. That's it.
 
 The build downloads nothing at runtime. It builds the Short Fuse dictionary
-(~275k English words) from an npm package into `public/games/wordbomb/`.
+(~275k English words) from an npm package into `public/games/wordbomb/`, and
+converts the Pretend You're Xyzzy card database (`data/pyx/cah_cards.sql`) into
+`public/games/insanity/pyx-cards.json`.
+
+Cards with Insanity imports CrCast decks through a tiny pass-through function,
+`api/crcast.js`. Vercel deploys it automatically; in development Vite serves it.
+If it's missing (another static host), browsers call CrCast directly instead.
+The card text comes from Cards Against Humanity (CC BY-NC-SA 2.0) via Pretend
+You're Xyzzy; see `data/pyx/README.md`.
 
 ## How it works
 
@@ -59,6 +68,7 @@ The build downloads nothing at runtime. It builds the Short Fuse dictionary
 |---|---|---|
 | The site (static files) | Vercel | static hosting only |
 | Matchmaking | PeerJS's free public server by default | a tiny message per connection; no game traffic |
+| CrCast deck import | a Vercel function (`api/crcast.js`) | one request per imported deck, cached at the edge |
 | Game logic and traffic | the players' browsers | none for you |
 
 To use your own matchmaking server instead of the public one, run
@@ -105,6 +115,8 @@ src/
   core/         HostCore (authoritative room state), succession rules, game registry
   ui/           home, lobby, member list, chat, settings form, game stage
   games/        one folder per game + index.js listing them
-scripts/        dictionary builder, local signaling server
+api/            Vercel functions (CrCast deck proxy)
+data/pyx/       Pretend You're Xyzzy card database (source for Cards with Insanity)
+scripts/        dictionary and card builders, local signaling server
 test/           unit tests for game rules and succession
 ```

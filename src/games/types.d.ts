@@ -7,7 +7,17 @@ import type { ComponentType } from 'preact';
 export type Setting =
   | { key: string; label: string; type: 'number'; default: number; min?: number; max?: number; step?: number; suffix?: string; help?: string; when?: (v: any) => boolean }
   | { key: string; label: string; type: 'toggle'; default: boolean; help?: string; when?: (v: any) => boolean }
-  | { key: string; label: string; type: 'select'; default: string; options: { value: string; label: string }[]; help?: string; when?: (v: any) => boolean };
+  | { key: string; label: string; type: 'select'; default: string; options: { value: string; label: string }[]; help?: string; when?: (v: any) => boolean }
+  | {
+      key: string;
+      label: string;
+      type: 'custom';
+      default: any;
+      /** Must return a valid (plain JSON) value or throw; runs on the host for every change. */
+      sanitize: (v: any) => any;
+      component: ComponentType<{ value: any; values: any; editable: boolean; onChange: (next: any) => void }>;
+      when?: (v: any) => boolean;
+    };
 
 export interface GameManifest {
   id: string;
@@ -16,6 +26,8 @@ export interface GameManifest {
   color: string;
   tagline: string;
   minPlayers: number;
+  /** Optional: the minimum for particular settings (e.g. fewer people needed when a bot plays). */
+  minPlayersFor?: (settings: any) => number;
   maxPlayers: number;
   rules?: string[];
   settings?: Setting[];
@@ -33,6 +45,8 @@ export interface HostContext<Settings = any, Assets = any> {
   assets: Assets;
   name: (id: string) => string;
   isConnected: (id: string) => boolean;
+  /** Seats a room member (e.g. a spectator) in the running game. Returns false if they're already in it. */
+  addPlayer: (id: string) => boolean;
   /** One-off event (sound, animation) to everyone, or to the given member id(s). */
   emit: (event: any, to?: string | string[] | null) => void;
 }

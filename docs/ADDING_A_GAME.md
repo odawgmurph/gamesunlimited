@@ -58,6 +58,12 @@ export default {
 Setting types: `number`, `toggle`, `select` (with `options`). The lobby renders
 and validates them for you; your logic receives them as `ctx.settings`.
 
+For anything those can't express, use `type: 'custom'` with a `component`
+(props: `value`, `values`, `editable`, `onChange(next)`) and a `sanitize(value)`
+that returns a clean JSON value or throws. Cards with Insanity's deck picker is
+an example. Keep the value small: lobby settings are sent to everyone on every
+change.
+
 ## 2. `logic.js`
 
 ```js
@@ -169,7 +175,11 @@ locally without any server, open several tabs at `http://localhost:5173/?net=loc
 
 ## Optional extras
 
+* `minPlayersFor: (settings) => n` in the manifest lowers (or raises) the
+  minimum for particular settings, e.g. when a bot fills a seat.
 * `roomChatDuringGame: false` in the manifest hides the room chat while the game
   runs (use it if the game has its own channels, like Mafia).
 * `ctx.isConnected(id)` lets rules skip or shorten turns for disconnected players.
+* `ctx.addPlayer(id)` seats a spectator in a running game, for games people can
+  join mid-way (see Cards with Insanity's `join` action).
 * `ctx.emit(event, toIds)` sends a one-off event to some players only.

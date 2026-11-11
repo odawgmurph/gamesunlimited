@@ -5,9 +5,9 @@
   "type": "module",
   "description": "Lobby-based peer-to-peer party games for the web.",
   "scripts": {
-    "predev": "node scripts/build-wordlist.mjs",
+    "predev": "node scripts/build-wordlist.mjs && node scripts/build-cah-cards.mjs",
     "dev": "vite",
-    "prebuild": "node scripts/build-wordlist.mjs",
+    "prebuild": "node scripts/build-wordlist.mjs && node scripts/build-cah-cards.mjs",
     "build": "vite build",
     "preview": "vite preview",
     "test": "node --test test/*.test.js",

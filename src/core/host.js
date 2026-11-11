@@ -7,7 +7,7 @@
  * snapshotted to the heir and resumed elsewhere on host migration.
  */
 import { succession, heirOf, sanitizeName } from './succession.js';
-import { getManifest, getLoadedGame, loadGame, defaultSettings, sanitizeSettings, listGames } from './registry.js';
+import { getManifest, getLoadedGame, loadGame, defaultSettings, sanitizeSettings, listGames, minPlayers } from './registry.js';
 
 const MAX_MEMBERS = 30;
 const CHAT_LIMIT = 100;
@@ -265,10 +265,11 @@ export class HostCore {
       .sort((a, b) => a.seq - b.seq)
       .slice(0, manifest.maxPlayers ?? Infinity)
       .map((m) => m.id);
-    if (players.length < (manifest.minPlayers ?? 1)) {
-      return this.notice(from, `${manifest.name} needs at least ${manifest.minPlayers} players.`, 'error');
-    }
     const settings = sanitizeSettings(manifest, S.lobby.settings[manifest.id]);
+    const min = minPlayers(manifest, settings);
+    if (players.length < min) {
+      return this.notice(from, `${manifest.name} needs at least ${min} players.`, 'error');
+    }
     S.game = { id: manifest.id, players, settings, state: null, over: false, startedAt: Date.now() };
     try {
       S.game.state = game.logic.setup(this.#ctx(game));
@@ -301,6 +302,12 @@ export class HostCore {
       assets: game.assets,
       name: (id) => this.member(id)?.name ?? S.game.names?.[id] ?? 'Someone',
       isConnected: (id) => !!this.member(id)?.connected,
+      // Seats a room member in the running game (for games that allow joining mid-game).
+      addPlayer: (id) => {
+        if (!this.member(id) || S.game.players.includes(id)) return false;
+        S.game.players.push(id);
+        return true;
+      },
       emit: (ev, to = null) => this.events.push({ ev, to }),
     };
   }
