@@ -1,0 +1,40 @@
+export default {
+  id: 'mafia',
+  name: 'Mafia',
+  icon: '🌙',
+  color: '#c23b5a',
+  tagline: 'Hidden roles. The town hunts the mafia by day; the mafia hunts the town by night.',
+  minPlayers: 3,
+  maxPlayers: 20,
+  roomChatDuringGame: false, // the game has its own day/night/dead chat channels
+  rules: [
+    'Everyone secretly gets a role. The mafia know each other; the town does not.',
+    'At night, the mafia pick someone to kill, and town roles like the Doctor and Detective use their powers.',
+    'During the day, everyone discusses and votes. If a majority votes for someone, they are executed.',
+    'Dead players can’t talk to the living, but can watch everything and chat with each other.',
+    'Town wins when all the mafia are dead. Mafia wins when they equal or outnumber everyone else.',
+  ],
+  settings: [
+    { key: 'mafiaCount', label: 'Mafia members', type: 'number', min: 0, max: 6, default: 0, help: '0 = automatic (about 1 in 4)' },
+    { key: 'godfather', label: 'Godfather', type: 'toggle', default: false, help: 'Mafia leader who looks innocent' },
+    { key: 'doctor', label: 'Doctor', type: 'toggle', default: true },
+    { key: 'cop', label: 'Detective', type: 'toggle', default: true },
+    { key: 'vigilante', label: 'Vigilante', type: 'toggle', default: false },
+    { key: 'jester', label: 'Jester', type: 'toggle', default: false, help: 'Needs 5+ players' },
+    { key: 'dayLength', label: 'Day length', type: 'number', min: 30, max: 900, step: 15, default: 180, suffix: 's' },
+    { key: 'nightLength', label: 'Night length', type: 'number', min: 15, max: 300, step: 5, default: 45, suffix: 's' },
+    {
+      key: 'start',
+      label: 'Game starts at',
+      type: 'select',
+      default: 'night',
+      options: [
+        { value: 'night', label: 'Night 1' },
+        { value: 'day', label: 'Day 1' },
+      ],
+    },
+    { key: 'reveal', label: 'Reveal roles on death', type: 'toggle', default: true },
+    { key: 'deadSeeAll', label: 'Dead players see mafia chat', type: 'toggle', default: true },
+  ],
+  load: () => import('./game.js'),
+};

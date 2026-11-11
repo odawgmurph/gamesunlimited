@@ -1,0 +1,26 @@
+{
+  "name": "gamesunlimited",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Lobby-based peer-to-peer party games for the web.",
+  "scripts": {
+    "predev": "node scripts/build-wordlist.mjs",
+    "dev": "vite",
+    "prebuild": "node scripts/build-wordlist.mjs",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node --test test/*.test.js",
+    "signal": "node scripts/signal-server.mjs"
+  },
+  "dependencies": {
+    "peerjs": "^1.5.5",
+    "preact": "^10.27.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.0",
+    "an-array-of-english-words": "^2.0.0",
+    "peer": "^1.0.2",
+    "vite": "^7.1.0"
+  }
+}
