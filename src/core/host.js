@@ -298,6 +298,7 @@ export class HostCore {
       now: Date.now(),
       random: Math.random,
       players: S.game.players,
+      hostId: S.hostId,
       settings: S.game.settings,
       assets: game.assets,
       name: (id) => this.member(id)?.name ?? S.game.names?.[id] ?? 'Someone',

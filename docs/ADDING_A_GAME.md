@@ -179,6 +179,8 @@ locally without any server, open several tabs at `http://localhost:5173/?net=loc
   minimum for particular settings, e.g. when a bot fills a seat.
 * `roomChatDuringGame: false` in the manifest hides the room chat while the game
   runs (use it if the game has its own channels, like Mafia).
+* `ctx.hostId` is the member currently hosting (Quips uses it to let the host's
+  device act as a shared TV screen instead of a player).
 * `ctx.isConnected(id)` lets rules skip or shorten turns for disconnected players.
 * `ctx.addPlayer(id)` seats a spectator in a running game, for games people can
   join mid-way (see Cards with Insanity's `join` action).
