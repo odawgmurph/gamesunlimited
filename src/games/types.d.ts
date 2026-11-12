@@ -41,6 +41,8 @@ export interface HostContext<Settings = any, Assets = any> {
   now: number;
   random: () => number;
   players: string[];
+  /** Who is hosting right now (changes if hosting moves). */
+  hostId: string;
   settings: Settings;
   assets: Assets;
   name: (id: string) => string;

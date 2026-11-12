@@ -356,3 +356,39 @@ test('joining mid-round: seated now, prompts from the next round, can vote meanw
   assert.ok(voters(state).some((p) => p.id === 'z'));
   assert.equal(logic.view(state, 'z', ctx).voting.canVote, true);
 });
+
+test('with "Host plays" off the host is the main screen: not seated, can’t act', () => {
+  const ctx = makeCtx({ players: ['h', 'a', 'b', 'c'], settings: { ...defaults, hostPlays: false }, assets: { prompts: PROMPTS } });
+  ctx.hostId = 'h';
+  const state = logic.setup(ctx);
+  assert.deepEqual(state.players.map((p) => p.id), ['a', 'b', 'c']);
+  assert.ok(state.matchups.every((m) => m.entries.every((e) => e.pid !== 'h')));
+  const v = logic.view(state, 'h', ctx);
+  assert.equal(v.isScreen, true);
+  assert.equal(v.canJoin, false);
+  assert.equal(v.tasks, null);
+  assert.equal(logic.action(state, 'h', { type: 'join' }, ctx), false);
+  answerAll(state, ctx);
+  assert.equal(logic.view(state, 'h', ctx).voting.canVote, false);
+  assert.equal(logic.action(state, 'h', { type: 'vote', i: 0 }, ctx), false);
+  // Needs three players besides the host.
+  const few = makeCtx({ players: ['h', 'a', 'b'], settings: { ...defaults, hostPlays: false }, assets: { prompts: PROMPTS } });
+  few.hostId = 'h';
+  assert.throws(() => logic.setup(few), /besides the host/);
+  // Host plays (the default): everyone is seated.
+  const all = makeCtx({ players: ['h', 'a', 'b'], settings: defaults, assets: { prompts: PROMPTS } });
+  all.hostId = 'h';
+  assert.equal(logic.setup(all).players.length, 3);
+});
+
+test('reveals give the main screen voter ids and per-player voted flags', () => {
+  const { ctx, state } = start(['a', 'b', 'c', 'd']);
+  answerAll(state, ctx);
+  const [v1] = voters(state);
+  logic.action(state, v1.id, { type: 'vote', i: 1 }, ctx);
+  const during = logic.view(state, 'spectator', ctx);
+  assert.equal(during.players.find((p) => p.id === v1.id).voted, true);
+  expire(state, ctx);
+  const r = logic.view(state, 'spectator', ctx).reveal;
+  assert.deepEqual(r.entries[1].voterIds, [v1.id]);
+});

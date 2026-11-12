@@ -41,10 +41,12 @@ export const TIMERS = {
   slow: { answer: 150, final: 100, vote: 30 },
   off: null,
 };
-const REVEAL_MS = 7500;
-const FINAL_REVEAL_MS = 12000;
-const SKIP_MS = 4500;
-const SCORES_MS = 8000;
+// Long enough for the main screen's reveal animations to play out.
+const REVEAL_MS = 9000;
+const FINAL_REVEAL_MS = 6000; // plus FINAL_REVEAL_EACH per answer
+const FINAL_REVEAL_EACH = 1500;
+const SKIP_MS = 5500;
+const SCORES_MS = 9000;
 
 function shuffle(arr, ctx) {
   for (let i = arr.length - 1; i > 0; i--) {
@@ -309,7 +311,7 @@ function tally(state, ctx, special = null) {
   state.crowd = {};
   state.phase = 'reveal';
   state.startedAt = ctx.now;
-  state.deadline = ctx.now + (special && special !== 'forfeit' ? SKIP_MS : final ? FINAL_REVEAL_MS : REVEAL_MS);
+  state.deadline = ctx.now + (special && special !== 'forfeit' ? SKIP_MS : final ? FINAL_REVEAL_MS + FINAL_REVEAL_EACH * n : REVEAL_MS);
   ctx.emit({ type: 'reveal', special, sweep: sweep != null, winners: winners.map((i) => m.entries[i].pid) });
 }
 
@@ -336,16 +338,20 @@ function advance(state, ctx) {
 export const logic = {
   setup(ctx) {
     const s = ctx.settings;
+    // With "Host plays" off, the host's device is the shared TV screen.
+    const screen = s.hostPlays === false && ctx.hostId && ctx.players.includes(ctx.hostId) ? ctx.hostId : null;
+    const seated = ctx.players.filter((id) => id !== screen);
     const pool = promptPool(s, ctx.assets?.prompts ?? PROMPTS);
-    const need = promptsNeeded(ctx.players.length, s);
+    const need = promptsNeeded(seated.length, s);
     if (pool.length < need) {
       throw new Error(
         pool.length === 0
           ? 'There are no prompts to play with. Turn on the built-in prompts or add your own (one per line).'
-          : `Not enough prompts: ${ctx.players.length} players need ${need}, and there ${pool.length === 1 ? 'is' : 'are'} only ${pool.length}. Turn on the built-in prompts or add more of your own.`
+          : `Not enough prompts: ${seated.length} players need ${need}, and there ${pool.length === 1 ? 'is' : 'are'} only ${pool.length}. Turn on the built-in prompts or add more of your own.`
       );
     }
-    if (ctx.players.length < MIN_PRESENT) throw new Error(`Quips needs at least ${MIN_PRESENT} players.`);
+    if (seated.length > MAX_PLAYERS) throw new Error(`Quips seats up to ${MAX_PLAYERS} players.`);
+    if (seated.length < MIN_PRESENT) throw new Error(`Quips needs at least ${MIN_PRESENT} players${screen ? ' besides the host' : ''}.`);
     const state = {
       phase: 'answer',
       over: false,
@@ -354,7 +360,8 @@ export const logic = {
       hasFinal: !!s.final,
       timer: TIMERS[s.timer] !== undefined ? s.timer : 'normal',
       audience: !!s.audience,
-      players: ctx.players.map((id) => ({ id, score: 0, roundStart: 0, left: false })),
+      screen,
+      players: seated.map((id) => ({ id, score: 0, roundStart: 0, left: false })),
       pool: shuffle(pool, ctx),
       used: [],
       matchups: [],
@@ -376,6 +383,8 @@ export const logic = {
     if (state.over || !a || typeof a !== 'object') return false;
     const p = seat(state, pid);
     const playing = !!p && !p.left;
+
+    if (pid === state.screen) return false; // the TV doesn't play or vote
 
     if (a.type === 'join') {
       if (playing) return false;
@@ -475,7 +484,8 @@ export const logic = {
       deadline: state.deadline,
       startedAt: state.startedAt,
       you: playing ? viewer : null,
-      canJoin: !playing && !state.over && state.players.filter((x) => !x.left).length < MAX_PLAYERS,
+      isScreen: viewer === state.screen,
+      canJoin: !playing && !state.over && viewer !== state.screen && state.players.filter((x) => !x.left).length < MAX_PLAYERS,
       audience: state.audience,
       players: state.players.map((p) => ({
         id: p.id,
@@ -486,6 +496,7 @@ export const logic = {
         connected: ctx.isConnected(p.id),
         writing: waiting.includes(p.id),
         toVote: toVote.includes(p.id),
+        voted: state.phase === 'vote' && p.id in state.votes,
       })),
       waitingOn: state.phase === 'answer' ? waiting : toVote,
       tasks: null,
@@ -516,7 +527,7 @@ export const logic = {
     if (state.phase === 'vote' && m) {
       const mine = playing ? state.votes[viewer] : state.crowd[viewer];
       v.voting = {
-        canVote: mine === undefined && (playing ? mayVote(state, viewer) : state.audience && voteTargets(state, viewer).length > 0),
+        canVote: mine === undefined && (playing ? mayVote(state, viewer) : state.audience && viewer !== state.screen && voteTargets(state, viewer).length > 0),
         mine: mine ?? null,
         author: m.entries.some((e) => e.pid === viewer),
         crowd: !playing,
@@ -542,6 +553,7 @@ export const logic = {
           crowd: e.crowd,
           points: e.points,
           voters: e.voters.map(nameOf),
+          voterIds: e.voters,
           mine: e.pid === viewer,
         })),
       };
