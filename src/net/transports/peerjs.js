@@ -8,7 +8,41 @@ import { Emitter, NetError } from '../emitter.js';
 
 const PREFIX = 'gamesunlimited-v1-';
 
-function peerOptions() {
+// PeerJS's own defaults, plus a few more STUN servers. The PeerJS TURN relay
+// is a best-effort public service; configure a real one (see api/ice.js).
+const DEFAULT_ICE = [
+  { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: ['turn:eu-0.turn.peerjs.com:3478', 'turn:us-0.turn.peerjs.com:3478'], username: 'peerjs', credential: 'peerjsp' },
+];
+
+/** ICE servers from the /api/ice function (TURN relays configured on the server). */
+async function fetchIce() {
+  try {
+    const res = await fetch('/api/ice', { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data.iceServers) ? data.iceServers : [];
+  } catch {
+    return []; // offline, dev server without the route, etc.
+  }
+}
+
+async function iceServers(env) {
+  let extra = [];
+  if (env.VITE_ICE_SERVERS) {
+    try {
+      extra = JSON.parse(env.VITE_ICE_SERVERS);
+    } catch {
+      console.warn('[peerjs] VITE_ICE_SERVERS is not valid JSON; ignoring it');
+    }
+  }
+  const fetched = await fetchIce();
+  // Configured relays first; the defaults stay as a fallback.
+  return [...extra, ...fetched, ...DEFAULT_ICE];
+}
+
+async function peerOptions() {
   const env = import.meta.env || {};
   const opts = { debug: 1 };
   const params = new URLSearchParams(location.search);
@@ -22,13 +56,7 @@ function peerOptions() {
     if (env.VITE_PEER_PATH) opts.path = env.VITE_PEER_PATH;
     if (env.VITE_PEER_SECURE) opts.secure = env.VITE_PEER_SECURE !== 'false';
   }
-  if (env.VITE_ICE_SERVERS) {
-    try {
-      opts.config = { iceServers: JSON.parse(env.VITE_ICE_SERVERS) };
-    } catch {
-      console.warn('[peerjs] VITE_ICE_SERVERS is not valid JSON; using defaults');
-    }
-  }
+  opts.config = { iceServers: await iceServers(env), sdpSemantics: 'unified-plan' };
   return opts;
 }
 
@@ -52,8 +80,13 @@ class PeerConn extends Emitter {
     dc.on('close', close);
     dc.on('error', close);
     // Data channels sometimes never fire 'close'; watch the ICE state too.
+    // 'disconnected' is often a momentary blip (Wi-Fi roaming, a relay
+    // hiccup) that recovers on its own, so give it a few seconds.
+    let grace = null;
     dc.on('iceStateChanged', (s) => {
-      if (s === 'failed' || s === 'closed' || s === 'disconnected') close();
+      clearTimeout(grace);
+      if (s === 'failed' || s === 'closed') close();
+      else if (s === 'disconnected') grace = setTimeout(close, 5000);
     });
   }
 
@@ -100,13 +133,14 @@ function openPeer(id, opts) {
 
 export class PeerJsTransport extends Emitter {
   name = 'peerjs';
-  #opts = peerOptions();
+  #opts = null;
   #peer = null;
   #aliases = new Map(); // alias -> Peer
   #pending = new Map(); // remote id -> reject fn (for peer-unavailable errors)
 
   async open(id) {
     this.id = id;
+    this.#opts = await peerOptions();
     this.#peer = await openPeer(id, this.#opts);
     this.#wire(this.#peer, true);
     return id;
@@ -152,7 +186,7 @@ export class PeerJsTransport extends Emitter {
     this.#aliases.delete(alias);
   }
 
-  connect(remote, { timeout = 8000 } = {}) {
+  connect(remote, { timeout = 12000 } = {}) {
     return new Promise((resolve, reject) => {
       const dc = this.#peer.connect(PREFIX + remote, { reliable: true, serialization: 'json' });
       const conn = new PeerConn(dc);
@@ -168,6 +202,7 @@ export class PeerJsTransport extends Emitter {
         } else resolve(conn);
       };
       const timer = setTimeout(() => finish(new NetError('timeout', `connect to ${remote} timed out`)), timeout);
+      dc.on('iceStateChanged', (st) => st === 'failed' && finish(new NetError('timeout', `no network route to ${remote}`)));
       this.#pending.set(remote, finish);
       conn.once('open', () => finish());
       conn.once('close', () => finish(new NetError('unavailable', 'connection closed')));

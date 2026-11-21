@@ -70,15 +70,35 @@ You're Xyzzy; see `data/pyx/README.md`.
 | The site (static files) | Vercel | static hosting only |
 | Matchmaking | PeerJS's free public server by default | a tiny message per connection; no game traffic |
 | CrCast deck import | a Vercel function (`api/crcast.js`) | one request per imported deck, cached at the edge |
+| TURN relay credentials | a Vercel function (`api/ice.js`) | one request per player session |
 | Game logic and traffic | the players' browsers | none for you |
 
 To use your own matchmaking server instead of the public one, run
 [`peer`](https://github.com/peers/peerjs-server) anywhere that supports
 WebSockets (not Vercel). Then set `VITE_PEER_HOST` / `VITE_PEER_PORT` /
 `VITE_PEER_PATH` / `VITE_PEER_SECURE` in Vercel's environment variables (see
-`.env.example`). Players on very restrictive networks (some corporate or
-school networks, a few mobile carriers) may need a TURN relay. Add one via
-`VITE_ICE_SERVERS`.
+`.env.example`).
+
+### Networking: playing across devices
+
+Tabs on one computer always connect directly. Devices on **different networks**
+(a phone on cellular, a friend's house, school or office Wi-Fi) often can't
+reach each other directly and need a **TURN relay** to carry the traffic. If
+joining from another device says the room is unavailable or the host is
+unreachable, this is almost always why. The app falls back to PeerJS's free
+public relay, but that one is often overloaded or down.
+
+To set up a reliable relay (free for small usage):
+
+1. In the Cloudflare dashboard, go to **Realtime → TURN Server** and create a
+   TURN key. Note the **Key ID** and **API token**.
+2. In Vercel → Project → Settings → Environment Variables, add
+   `CLOUDFLARE_TURN_KEY_ID` and `CLOUDFLARE_TURN_API_TOKEN`, then redeploy.
+
+`api/ice.js` then hands each browser short-lived relay credentials. Any other
+TURN provider (metered.ca, your own coturn) works too: put its servers in the
+`ICE_SERVERS` env var as a JSON array. You can check what browsers receive at
+`/api/ice`.
 
 **Trust model:** the host's browser necessarily knows everything, and so does
 their backup. Someone determined could peek at hidden roles from their
