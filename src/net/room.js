@@ -80,14 +80,19 @@ export class Room extends Emitter {
 
     // Retry for a bit: right after a host change the new host may not have
     // taken over the room code yet.
-    const until = Date.now() + 12000;
+    const until = Date.now() + 20000;
     let ok = false;
+    this.lastJoinError = null;
     while (!ok && !this.destroyed && Date.now() < until) {
       ok = await this.#joinVia(door(this.code), { deadline: until - Date.now() });
       if (!ok && !this.destroyed && !this.state.error) await new Promise((r) => setTimeout(r, 1000));
     }
     if (!ok && !this.destroyed) {
-      this.#fail(`Room ${this.code} doesn't exist (or its host is unreachable).`);
+      this.#fail(
+        this.lastJoinError === 'timeout'
+          ? `Found room ${this.code}, but couldn't connect to the host's device. This usually means the two networks block direct connections; the site needs a TURN relay configured (see README → Networking).`
+          : `Room ${this.code} doesn't exist (or its host is unreachable).`,
+      );
     }
   }
 
@@ -217,8 +222,9 @@ export class Room extends Emitter {
     const until = Date.now() + deadline;
     let conn;
     try {
-      conn = await this.transport.connect(target, { timeout: Math.min(8000, deadline) });
-    } catch {
+      conn = await this.transport.connect(target, { timeout: Math.min(12000, deadline) });
+    } catch (err) {
+      if (err?.code) this.lastJoinError = err.code;
       return false;
     }
     if (this.destroyed) {
